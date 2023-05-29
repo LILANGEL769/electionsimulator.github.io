@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Election Simulator</title>
+  <style>
+    /* CSS styles here */
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Election Simulator</h1>
+  </header>
+
+  <main>
+    <section id="campaigning-section">
+      <h2>Campaigning</h2>
+      <div id="candidates-container">
+        <!-- Add candidate-related content here -->
+      </div>
+      <button onclick="calculateResults()">Calculate Results</button>
+    </section>
+
+    <section id="voting-section">
+      <h2>Voting</h2>
+      <div>
+        <label for="voters-input">Number of Voters in State:</label>
+        <input type="number" id="voters-input">
+      </div>
+      <h3>Partisan Lean:</h3>
+      <div id="partisan-lean-container">
+        <!-- Add partisan lean input fields dynamically -->
+      </div>
+    </section>
+
+    <section id="results-section">
+      <h2>Results</h2>
+      <div id="winner-container">
+        <h3>Winner:</h3>
+        <p id="winner-name"></p>
+      </div>
+      <div id="final-leans-container">
+        <h3>Final Partisan Leans:</h3>
+        <ul id="final-leans-list"></ul>
+      </div>
+      <div id="votes-container">
+        <h3>Votes:</h3>
+        <ul id="votes-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // JavaScript code here
+
+    var electionData = {
+      candidates: []
+    };
+
+    function addCandidate() {
+      if (electionData.candidates.length >= 5) {
+        alert("Maximum limit of candidates reached.");
+        return;
+      }
+
+      var candidateName = prompt("Enter candidate name:");
+
+      if (candidateName) {
+        var candidate = {
+          name: candidateName,
+          speeches: 0,
+          ads: 0,
+          rallies: 0,
+          partisanLean: 0,
+          finalLean: 0,
+          votes: 0
+        };
+
+        electionData.candidates.push(candidate);
+        renderCandidates();
+      }
+    }
+
+    function renderCandidates() {
+      var candidatesContainer = document.getElementById("candidates-container");
+      candidatesContainer.innerHTML = "";
+
+      for (var i = 0; i < electionData.candidates.length; i++) {
+        var candidate = electionData.candidates[i];
+        var candidateDiv = document.createElement("div");
+
+        var candidateName = document.createElement("h3");
+        candidateName.textContent = candidate.name;
+
+        var speechesLabel = document.createElement("label");
+        speechesLabel.textContent = "Speeches: ";
+
+        var speechesInput = document.createElement("input");
+        speechesInput.type = "number";
+        speechesInput.value = candidate.speeches;
+        speechesInput.oninput = function() {
+          var candidateIndex = Array.from(this.parentNode.parentNode.children).indexOf(this.parentNode);
+          var candidate = electionData.candidates[candidateIndex];
+
+          candidate.speeches = parseInt(this.value);
+        };
+
+        var adsLabel = document.createElement("label");
+        adsLabel.textContent = "Ads: ";
+
+        var adsInput = document.createElement("input");
+        adsInput.type = "number";
+        adsInput.value = candidate.ads;
+        adsInput.oninput = function() {
+          var candidateIndex = Array.from(this.parentNode.parentNode.children).indexOf(this.parentNode);
+          var candidate = electionData.candidates[candidateIndex];
+
+          candidate.ads = parseInt(this.value);
+        };
+
+        var ralliesLabel = document.createElement("label");
+        ralliesLabel.textContent = "Rallies: ";
+
+        var ralliesInput = document.createElement("input");
+        ralliesInput.type = "number";
+        ralliesInput.value = candidate.rallies;
+        ralliesInput.oninput = function() {
+          var candidateIndex = Array.from(this.parentNode.parentNode.children).indexOf(this.parentNode);
+          var candidate = electionData.candidates[candidateIndex];
+
+          candidate.rallies = parseInt(this.value);
+        };
+
+        var partisanLeanLabel = document.createElement("label");
+        partisanLeanLabel.textContent = "Partisan Lean: ";
+
+        var partisanLeanInput = document.createElement("input");
+        partisanLeanInput.type = "number";
+        partisanLeanInput.value = candidate.partisanLean;
+        partisanLeanInput.oninput = function() {
+          var candidateIndex = Array.from(this.parentNode.parentNode.children).indexOf(this.parentNode);
+          var candidate = electionData.candidates[candidateIndex];
+
+          candidate.partisanLean = parseInt(this.value);
+        };
+
+        candidateDiv.appendChild(candidateName);
+        candidateDiv.appendChild(speechesLabel);
+        candidateDiv.appendChild(speechesInput);
+        candidateDiv.appendChild(adsLabel);
+        candidateDiv.appendChild(adsInput);
+        candidateDiv.appendChild(ralliesLabel);
+        candidateDiv.appendChild(ralliesInput);
+        candidateDiv.appendChild(partisanLeanLabel);
+        candidateDiv.appendChild(partisanLeanInput);
+
+        candidatesContainer.appendChild(candidateDiv);
+      }
+    }
+
+    function calculateResults() {
+      var votersInput = document.getElementById("voters-input");
+      var numVoters = parseInt(votersInput.value);
+
+      var partisanLeans = [];
+
+      for (var i = 0; i < electionData.candidates.length; i++) {
+        var candidate = electionData.candidates[i];
+        var candidateScore =
+          candidate.partisanLean +
+          candidate.speeches * 1.5 +
+          candidate.rallies * 0.3 +
+          candidate.ads * 0.6;
+
+        var candidateFinalLean = candidateScore;
+
+        candidate.finalLean = candidateFinalLean;
+        partisanLeans.push(candidateFinalLean);
+      }
+
+      // Adjust the final partisan leans to ensure they add up to 100
+      var sumLeans = partisanLeans.reduce(function(a, b) {
+        return a + b;
+      }, 0);
+      var scaleFactor = 100 / sumLeans;
+      partisanLeans = partisanLeans.map(function(lean) {
+        return lean * scaleFactor;
+      });
+
+      // Determine the winner based on the highest final partisan lean
+      var maxLean = Math.max(...partisanLeans);
+      var winnerIndex = partisanLeans.indexOf(maxLean);
+      var winnerName = electionData.candidates[winnerIndex].name;
+
+      // Display the winner
+      var winnerNameElement = document.getElementById("winner-name");
+      winnerNameElement.textContent = winnerName;
+
+      // Display the final partisan leans
+      var finalLeansList = document.getElementById("final-leans-list");
+      finalLeansList.innerHTML = "";
+
+      for (var i = 0; i < electionData.candidates.length; i++) {
+        var candidate = electionData.candidates[i];
+        var listItem = document.createElement("li");
+        listItem.textContent = candidate.name + ": " + partisanLeans[i].toFixed(2) + "%";
+        finalLeansList.appendChild(listItem);
+      }
+
+      // Calculate the number of votes each candidate received
+      var totalVotes = 0;
+      for (var i = 0; i < electionData.candidates.length; i++) {
+        var candidate = electionData.candidates[i];
+        var votes = Math.round((candidate.finalLean / 100) * numVoters);
+        candidate.votes = votes;
+        totalVotes += votes;
+      }
+
+      // Display the votes
+      var votesList = document.getElementById("votes-list");
+      votesList.innerHTML = "";
+
+      for (var i = 0; i < electionData.candidates.length; i++) {
+        var candidate = electionData.candidates[i];
+        var listItem = document.createElement("li");
+        listItem.textContent = candidate.name + ": " + candidate.votes + " votes";
+        votesList.appendChild(listItem);
+      }
+    }
+
+    // Example usage:
+    addCandidate();
+    addCandidate();
+    addCandidate();
+    addCandidate();
+    addCandidate();
+  </script>
+</body>
+</html>
